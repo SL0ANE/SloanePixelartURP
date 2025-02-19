@@ -32,15 +32,15 @@ namespace Sloane.PixelartURP
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var camera = renderingData.cameraData.camera;
-            var pixelArtCamera = PixelartCamera.GetPixelartCamera(camera);
-            if (pixelArtCamera == null) return;
+            var pixelartCamera = PixelartCamera.GetPixelartCamera(camera);
+            if (pixelartCamera == null) return;
 
             var cmd = CommandBufferPool.Get(k_PassTag);
             using (new ProfilingScope(cmd, new ProfilingSampler(k_PassTag)))
             {
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-                cmd.SetRenderTarget(pixelArtCamera.ResultTexture);
-                cmd.Blit(pixelArtCamera.ResultTexture, renderingData.cameraData.renderer.cameraColorTargetHandle);
+                cmd.SetRenderTarget(pixelartCamera.ResultTexture);
+                cmd.Blit(pixelartCamera.ResultTexture, renderingData.cameraData.renderer.cameraColorTargetHandle);
             }
 
             context.ExecuteCommandBuffer(cmd);
@@ -58,13 +58,13 @@ namespace Sloane.PixelartURP
             UniversalCameraData cameraData = frameContext.Get<UniversalCameraData>();
             var resourceData = frameContext.Get<UniversalResourceData>();
             var camera = cameraData.camera;
-            var pixelArtCamera = PixelartCamera.GetPixelartCamera(camera);
-            if (pixelArtCamera == null) return;
+            var pixelartCamera = PixelartCamera.GetPixelartCamera(camera);
+            if (pixelartCamera == null) return;
             
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(k_PassTag, out var passData))
             {
                 builder.AllowPassCulling(false);
-                passData.Source = pixelArtCamera.ResultHandle;
+                passData.Source = pixelartCamera.ResultHandle;
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) => ExecutePass(data, context));
             }

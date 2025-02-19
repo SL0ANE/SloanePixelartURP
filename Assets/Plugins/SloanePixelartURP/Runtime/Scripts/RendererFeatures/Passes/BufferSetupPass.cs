@@ -35,41 +35,9 @@ namespace Sloane.PixelartURP
         }
 
 #if UNITY_6000_0_OR_NEWER
-        private class PassData
-        {
-            public TextureHandle[] targetBufferHandles = new TextureHandle[(int)TargetBuffer.Max];
-        }
-
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameContext)
         {
-            UniversalCameraData cameraData = frameContext.Get<UniversalCameraData>();
-            var camera = cameraData.camera;
-            var pixelArtCamera = PixelartCamera.GetPixelartCamera(camera, PixelartCamera.CameraTarget.CastCamera);
-            using (var builder = renderGraph.AddUnsafePass<PassData>(k_PassTag, out var passData))
-            {
-                if (pixelArtCamera == null) return;
-
-                builder.AllowPassCulling(false);
-                
-                for (int i = 0; i < (int)TargetBuffer.Max; i++)
-                {
-                    TargetBuffer target = (TargetBuffer)i;
-                    passData.targetBufferHandles[i] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, TargetBufferUtil.GetDescriptor(pixelArtCamera.CameraData, target), TargetBufferUtil.GetBufferName(target), false);
-                    builder.UseTexture(passData.targetBufferHandles[i], AccessFlags.None);
-                }
-
-                builder.AllowPassCulling(false);
-                builder.SetRenderFunc((PassData data, UnsafeGraphContext context) => ExecutePass(data, context));
-            }
-        }
-
-        private static void ExecutePass(PassData data, UnsafeGraphContext context)
-        {
-            for (int i = 0; i < (int)TargetBuffer.Max; i++)
-            {
-                TargetBuffer target = (TargetBuffer)i;
-                context.cmd.SetGlobalTexture(TargetBufferUtil.GetBufferShaderProperty(target), data.targetBufferHandles[i]);
-            }
+            // Render Graph API 在第一次用到渲染目标时才创建
         }
 #endif
     }
@@ -102,7 +70,7 @@ namespace Sloane.PixelartURP
 #if UNITY_6000_0_OR_NEWER
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameContext)
         {
-
+            // Render Graph API 下自动管理渲染目标
         }
 #endif
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal;
 
 namespace Sloane.PixelartURP
@@ -49,6 +50,19 @@ namespace Sloane.PixelartURP
         public RenderTexture ResultTexture => m_ResultTexture;
         public RTHandle ResultHandle => m_ResultHandle;
 
+#if UNITY_6000_0_OR_NEWER
+        private TextureHandle[] m_TargetBufferHandles = new TextureHandle[(int)TargetBuffer.Max];
+        public TextureHandle GetTextureHandle(TargetBuffer target)
+        {
+            return m_TargetBufferHandles[(int)target];
+        }
+
+        public void SetTextureHandle(TargetBuffer target, TextureHandle handle)
+        {
+            m_TargetBufferHandles[(int)target] = handle;
+        }
+#endif
+
         public enum CameraTarget
         {
             MainCamera,
@@ -57,23 +71,23 @@ namespace Sloane.PixelartURP
 
         public static PixelartCamera GetPixelartCamera(Camera camera, CameraTarget target = CameraTarget.MainCamera)
         {
-            var pixelArtCamera = target == CameraTarget.MainCamera ? (CameraMap.ContainsKey(camera) ? CameraMap[camera] : null) : (CastCameraMap.ContainsKey(camera) ? CastCameraMap[camera] : null);
+            var pixelartCamera = target == CameraTarget.MainCamera ? (CameraMap.ContainsKey(camera) ? CameraMap[camera] : null) : (CastCameraMap.ContainsKey(camera) ? CastCameraMap[camera] : null);
 
-            if (pixelArtCamera == null)
+            if (pixelartCamera == null)
             {
                 if (target == CameraTarget.MainCamera)
                 {
-                    pixelArtCamera = camera.gameObject.GetComponent<PixelartCamera>();
+                    pixelartCamera = camera.gameObject.GetComponent<PixelartCamera>();
                 }
                 else
                 {
-                    pixelArtCamera = camera.gameObject.GetComponent<PixelartCastCamera>()?.ParentCamera;
+                    pixelartCamera = camera.gameObject.GetComponent<PixelartCastCamera>()?.ParentCamera;
                 }
 
-                if (pixelArtCamera != null) pixelArtCamera.RegisterCamera();
+                if (pixelartCamera != null) pixelartCamera.RegisterCamera();
             }
 
-            return pixelArtCamera;
+            return pixelartCamera;
         }
 
         private void Awake()
@@ -142,7 +156,7 @@ namespace Sloane.PixelartURP
         {
             if (m_ResultTexture != null)
             {
-                if(CastCamera == null) CastCamera.targetTexture = null;
+                if(CastCamera != null) CastCamera.targetTexture = null;
                 m_ResultTexture.Release();
                 DestroyImmediate(m_ResultTexture);
                 m_ResultTexture = null;

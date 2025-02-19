@@ -6,24 +6,23 @@ using UnityEngine.Rendering;
 
 namespace Sloane.PixelartURP
 {
+    // 部分参考了URP延迟渲染的组织
+    // https://docs.unity3d.com/Manual/RenderTech-DeferredShading.html
     public enum TargetBuffer
     {
         Depth = 0,
-        Albedo = 1,
-        Normal = 2,    // 根据顶点法线和法线贴图计算出的法线
-        NormalExact = 3,    // 根据位置变化率计算出的法线
-        EmissiveProperty = 4,    // 自发光颜色与强度
-        SpecularProperty = 5,    // 高光颜色与强度
-        PhysicalProperty = 6,   // 金属度，光滑度，遮蔽度
-        ShapeProperty = 7,    // 优先级，法线边缘阈值
-        PaletteProperty = 8,    // 主光源级数，dither灰度, 边缘增减级数, 布尔信息（0：是否应用描边）
-        UV = 9,    // 根据优先级整出的UV偏移
-        ConnectivityDetail = 10,
-        ConnectivityResult = 11,
-        Diffuse = 12,
-        Specular = 13,
-        GlobalIllumination = 14,
-        RimLight = 15,
+        AlbedoProperty = 1,    // 漫反射颜色, 环境光遮蔽
+        SpecularProperty = 2,    // 高光颜色, 光滑度
+        LightingProperty = 3,    // 全局光照以及自发光，着色索引
+        MiscProperty = 4,    // RGBA32，每个数据占8位，理论上能记录16组数据。默认着色器的分配是：优先级，主光源级数，dither灰度, 法线边缘阈值, 边缘增减级数, 布尔信息（0：是否应用描边）
+        Normal = 5,    // 根据顶点法线和法线贴图计算出的法线
+        NormalExact = 6,    // 根据位置变化率计算出的法线
+        UV = 7,    // 根据优先级整出的UV偏移
+        ConnectivityDetail = 8,
+        ConnectivityResult = 9,
+        Diffuse = 10,
+        Specular = 11,
+        RimLight = 12,
         Max,
     }
 
@@ -32,12 +31,11 @@ namespace Sloane.PixelartURP
     {
         Start = -1,
         MarkerDepth = 0,
-        MarkerRawData = 8,    // 多个渲染目标得到的原始数据
-        MarkerPriority = 9,    // 优先级
-        MarkerConnectionDetail = 10,
-        MarkerConnectionResult = 11,
-        MarkerShading = 15,
-        MarkerResult = 16,
+        MarkerRawData = 6,    // 多个渲染目标得到的原始数据
+        MarkerPriority = 7,    // 优先级
+        MarkerConnectionDetail = 8,
+        MarkerConnectionResult = 9,
+        MarkerShading = 12,
         Max,
     }
 
@@ -91,19 +89,27 @@ namespace Sloane.PixelartURP
                         msaaSamples = 1,
                         dimension = TextureDimension.Tex2D
                     };
-                case TargetBuffer.Albedo:
+                case TargetBuffer.AlbedoProperty:
+                case TargetBuffer.SpecularProperty:
+                case TargetBuffer.LightingProperty:
                 case TargetBuffer.Normal:
                 case TargetBuffer.NormalExact:
-                case TargetBuffer.EmissiveProperty:
-                case TargetBuffer.SpecularProperty:
-                case TargetBuffer.PhysicalProperty:
-                case TargetBuffer.ShapeProperty:
-                case TargetBuffer.PaletteProperty:
                     return new RenderTextureDescriptor(sourceResolution.x, sourceResolution.y)
                     {
                         depthBufferBits = 0,
                         enableRandomWrite = true,
                         graphicsFormat = GraphicsFormat.R16G16B16A16_SNorm,
+                        volumeDepth = 1,
+                        msaaSamples = 1,
+                        sRGB = true,
+                        dimension = TextureDimension.Tex2D
+                    };
+                case TargetBuffer.MiscProperty:
+                    return new RenderTextureDescriptor(sourceResolution.x, sourceResolution.y)
+                    {
+                        depthBufferBits = 0,
+                        enableRandomWrite = true,
+                        graphicsFormat = GraphicsFormat.R32G32B32A32_SFloat,
                         volumeDepth = 1,
                         msaaSamples = 1,
                         sRGB = true,
@@ -141,9 +147,8 @@ namespace Sloane.PixelartURP
                     };
                 case TargetBuffer.Diffuse:
                 case TargetBuffer.Specular:
-                case TargetBuffer.GlobalIllumination:
                 case TargetBuffer.RimLight:
-                    return new RenderTextureDescriptor(targetResolution.x, targetResolution.y)
+                    return new RenderTextureDescriptor(sourceResolution.x, sourceResolution.y)
                     {
                         depthBufferBits = 0,
                         enableRandomWrite = true,
