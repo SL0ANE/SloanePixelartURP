@@ -72,6 +72,8 @@ namespace Sloane.PixelartURP
 #if UNITY_6000_0_OR_NEWER
         private class PassData
         {
+            internal PixelartCamera pixelartCamera;
+            internal UniversalCameraData cameraData;
             internal RendererListHandle RendererList;
         }
 
@@ -114,6 +116,9 @@ namespace Sloane.PixelartURP
                 passData.RendererList = renderGraph.CreateRendererList(param);
                 builder.UseRendererList(passData.RendererList);
 
+                passData.pixelartCamera = pixelartCamera;
+                passData.cameraData = cameraData;
+
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {
                     ExecutePass(rgContext.cmd, data);
@@ -125,6 +130,21 @@ namespace Sloane.PixelartURP
         {
             using (new ProfilingScope(cmd, new ProfilingSampler(k_PassTag)))
             {
+                float unitSize = passData.pixelartCamera.UnitSize;
+
+                Matrix4x4 viewMatrix = passData.cameraData.GetViewMatrix();
+                viewMatrix.m03 = Mathf.Round(viewMatrix.m03 / unitSize) * unitSize;
+                viewMatrix.m13 = Mathf.Round(viewMatrix.m13 / unitSize) * unitSize;
+                var proj = passData.cameraData.GetProjectionMatrix();
+                var viewProjMat = proj * viewMatrix;
+
+                cmd.SetGlobalMatrix(ShaderPropertyStorage.CameraViewMatrix, viewMatrix);
+                cmd.SetGlobalMatrix(ShaderPropertyStorage.CameraInvViewMatrix, viewMatrix.inverse);
+                cmd.SetGlobalMatrix(ShaderPropertyStorage.CameraViewProjectionMatrix, viewProjMat);
+                cmd.SetGlobalMatrix(ShaderPropertyStorage.CameraInvViewProjectionMatrix, viewProjMat.inverse);
+
+                cmd.SetGlobalFloat(ShaderPropertyStorage.UnitSize, unitSize);
+
                 cmd.DrawRendererList(passData.RendererList);
             }
         }

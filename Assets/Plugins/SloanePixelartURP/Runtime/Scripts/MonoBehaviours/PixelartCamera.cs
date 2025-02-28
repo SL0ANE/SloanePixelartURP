@@ -49,6 +49,7 @@ namespace Sloane.PixelartURP
         private RTHandle m_ResultHandle;
         public RenderTexture ResultTexture => m_ResultTexture;
         public RTHandle ResultHandle => m_ResultHandle;
+        public float UnitSize => CastCamera.orthographicSize * 2.0f / CameraData.TargetResolution.y;
 
 #if UNITY_6000_0_OR_NEWER
         private TextureHandle[] m_TargetBufferHandles = new TextureHandle[(int)TargetBuffer.Max];
