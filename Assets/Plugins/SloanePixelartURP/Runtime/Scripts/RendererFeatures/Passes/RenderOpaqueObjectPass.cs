@@ -17,15 +17,14 @@ namespace Sloane.PixelartURP
         }
 
         private static readonly string k_PassTag = "Render Opaque Object";
-        public static readonly ShaderTagId TargetShaderPass = new ShaderTagId("PixelartOpaque");
+        public static readonly ShaderTagId TargetShaderPass = new ShaderTagId("PixelartGBuffer");
         public static readonly RenderTargetIdentifier[] OpaqueBuffersIdentifiers = new RenderTargetIdentifier[(int)TargetBufferStage.MarkerRawData - (int)TargetBufferStage.MarkerDepth]
         {
             TargetBufferUtil.GetBufferShaderProperty(TargetBuffer.AlbedoProperty),
             TargetBufferUtil.GetBufferShaderProperty(TargetBuffer.SpecularProperty),
             TargetBufferUtil.GetBufferShaderProperty(TargetBuffer.LightingProperty),
             TargetBufferUtil.GetBufferShaderProperty(TargetBuffer.MiscProperty),
-            TargetBufferUtil.GetBufferShaderProperty(TargetBuffer.Normal),
-            TargetBufferUtil.GetBufferShaderProperty(TargetBuffer.NormalExact),
+            TargetBufferUtil.GetBufferShaderProperty(TargetBuffer.Normal)
         };
 
         public static readonly RenderTargetIdentifier DepthBufferIdentifier = TargetBufferUtil.GetBufferShaderProperty(TargetBuffer.Depth);

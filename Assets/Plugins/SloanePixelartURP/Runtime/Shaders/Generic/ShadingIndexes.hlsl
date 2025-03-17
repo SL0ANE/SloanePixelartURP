@@ -1,0 +1,1 @@
+#define SHADING_INDEX_STANDARD 0

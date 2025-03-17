@@ -16,13 +16,12 @@ namespace Sloane.PixelartURP
         LightingProperty = 3,    // 全局光照以及自发光，着色索引
         MiscProperty = 4,    // RGBA32，每个数据占8位，理论上能记录16组数据。默认着色器的分配是：优先级，主光源级数，dither灰度, 法线边缘阈值, 边缘增减级数, 布尔信息（0：是否应用描边）
         Normal = 5,    // 根据顶点法线和法线贴图计算出的法线
-        NormalExact = 6,    // 根据位置变化率计算出的法线
-        UV = 7,    // 根据优先级整出的UV偏移
-        ConnectivityDetail = 8,
-        ConnectivityResult = 9,
-        Diffuse = 10,
-        Specular = 11,
-        RimLight = 12,
+        UV = 6,    // 根据优先级整出的UV偏移
+        ConnectivityDetail = 7,
+        ConnectivityResult = 8,
+        Diffuse = 9,
+        Specular = 10,
+        RimLight = 11,
         Max,
     }
 
@@ -31,11 +30,11 @@ namespace Sloane.PixelartURP
     {
         Start = -1,
         MarkerDepth = 0,
-        MarkerRawData = 6,    // 多个渲染目标得到的原始数据
-        MarkerPriority = 7,    // 优先级
-        MarkerConnectionDetail = 8,
-        MarkerConnectionResult = 9,
-        MarkerShading = 12,
+        MarkerRawData = 5,    // 多个渲染目标得到的原始数据
+        MarkerPriority = 6,    // 优先级
+        MarkerConnectionDetail = 7,
+        MarkerConnectionResult = 8,
+        MarkerShading = 11,
         Max,
     }
 
@@ -93,12 +92,11 @@ namespace Sloane.PixelartURP
                 case TargetBuffer.SpecularProperty:
                 case TargetBuffer.LightingProperty:
                 case TargetBuffer.Normal:
-                case TargetBuffer.NormalExact:
                     return new RenderTextureDescriptor(sourceResolution.x, sourceResolution.y)
                     {
                         depthBufferBits = 0,
                         enableRandomWrite = true,
-                        graphicsFormat = GraphicsFormat.R16G16B16A16_SNorm,
+                        graphicsFormat = GraphicsFormat.R16G16B16A16_UNorm,
                         volumeDepth = 1,
                         msaaSamples = 1,
                         sRGB = true,

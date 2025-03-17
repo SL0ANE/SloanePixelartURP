@@ -1,6 +1,7 @@
 #ifndef PIXELART_SHARED_INCLUDED
 #define PIXELART_SHARED_INCLUDED
 #include "RenderTargets.hlsl"
+#include "ShadingIndexes.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
 struct Attributes
@@ -60,7 +61,7 @@ VertexPositionInputs GetSnappedVertexPositionInputs(float3 positionOS)
     return input;
 }
 
-Varyings LitPassVertex(Attributes input)
+Varyings PassVertex(Attributes input)
 {
     Varyings output = (Varyings)0;
 
@@ -71,16 +72,8 @@ Varyings LitPassVertex(Attributes input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
 
-    half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
+    output.uv = input.texcoord;
 
-    half fogFactor = 0;
-    #if !defined(_FOG_FRAGMENT)
-        fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
-    #endif
-
-    output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
-
-    // already normalized from normal transform to WS.
     output.normalWS = normalInput.normalWS;
 #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR) || defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
     real sign = input.tangentOS.w * GetOddNegativeScale();
@@ -96,23 +89,16 @@ Varyings LitPassVertex(Attributes input)
     output.viewDirTS = viewDirTS;
 #endif
 
+#if !defined(IGNORE_LIGHTING)
     OUTPUT_LIGHTMAP_UV(input.staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
 #ifdef DYNAMICLIGHTMAP_ON
     output.dynamicLightmapUV = input.dynamicLightmapUV.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
 #endif
     OUTPUT_SH4(vertexInput.positionWS, output.normalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH, output.probeOcclusion);
-#ifdef _ADDITIONAL_LIGHTS_VERTEX
-    output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
-#else
-    output.fogFactor = fogFactor;
 #endif
 
 #if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
     output.positionWS = vertexInput.positionWS;
-#endif
-
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    output.shadowCoord = GetShadowCoord(vertexInput);
 #endif
 
     output.positionCS = vertexInput.positionCS;
